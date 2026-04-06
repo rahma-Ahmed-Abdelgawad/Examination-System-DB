@@ -1,4 +1,4 @@
-
+use ExamSystemDB
 --Instructor can select students for exam
 CREATE TRIGGER TR_Student_Not_Allowed
 ON Answer
@@ -85,3 +85,25 @@ BEGIN
     DELETE FROM Question
     WHERE Id IN (SELECT Id FROM deleted);
 END;
+
+--Set Exam Publish Status
+
+ALTER TABLE Exam
+ADD Is_Published BIT DEFAULT 0;
+
+CREATE TRIGGER TR_Set_Exam_Publish_Status
+ON Exam
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    UPDATE E
+    SET Is_Published =
+        CASE 
+            WHEN E.Start_Time <= GETDATE() THEN 1
+            ELSE 0
+        END
+    FROM Exam E
+    JOIN inserted i
+        ON E.Id = i.Id;
+END;
+
